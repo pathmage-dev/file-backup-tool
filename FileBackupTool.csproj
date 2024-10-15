@@ -5,14 +5,14 @@
         <TargetFramework>net8.0</TargetFramework>
         <ImplicitUsings>disable</ImplicitUsings>
         <Nullable>enable</Nullable>
-        <NoWarn>0642</NoWarn>
+        <NoWarn>0642;8321;0169</NoWarn>
     </PropertyGroup>
 
     <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
         <DefineConstants>ERR</DefineConstants>
     </PropertyGroup>
 
-    <PropertyGroup Condition="'$(Configuration)'=='Release'">
+    <PropertyGroup Condition="'$(Configuration)' == 'Release'">
         <DebugSymbols>False</DebugSymbols>
         <DebugType>None</DebugType>
     </PropertyGroup>
