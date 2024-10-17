@@ -1,58 +1,100 @@
-﻿using FileBackupTool.Menus.Components;
+﻿using System.Text;
+using FileBackupTool.Menus.Components;
 
 namespace FileBackupTool.Menus;
 
 public sealed class Menu
 {
-	readonly string? header;
-
-	Component?[] components;
+	Component[] components;
 	int component_count;
 
-	int cursor;
+	int current;
 
-	public Menu(string? header, int hovered_option, params Component[] components)
+	readonly bool interactive;
+
+	public Menu(int hovered_option, params Component[] components)
 	{
 #if ERR
 		ArgumentOutOfRangeException.ThrowIfEqual(components.Length, 0);
-
 		ArgumentOutOfRangeException.ThrowIfLessThan(hovered_option, 0);
 		ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(hovered_option, components.Length);
 #endif
-		this.header = header;
 		this.components = components;
 		component_count = components.Length;
-		cursor = hovered_option;
 
-		SetHoverAtCursor(true);
+		for (int i = 0; i < components.Length; i++)
+		{
+			if (components[i] is HoverComponent)
+			{
+				current = i;
+				interactive = true;
+				break;
+			}
+		}
+
+		if (components[hovered_option] is HoverComponent)
+			current = hovered_option;
+
+		SetCurrentHover(true);
 	}
 
-	public Menu(string? header, params Component[] components) : this(header, 0, components) { }
+	public Menu(params Component[] components) : this(0, components) { }
 
-	public Menu(params Component[] components) : this(null, components) { }
-
-	public void Append(Component component)
+	public bool Process(out bool go_back, out string? input)
 	{
-		if (component_count++ == components.Length)
-			Array.Resize(ref components, component_count << 2);
+		go_back = false;
 
-		components[component_count - 1] = component;
+		Draw();
+		SetCurrentHover(false);
+
+		if (TryGetInput(out input) &&
+		    input == "Escape")
+			go_back = true;
+
+		SetCurrentHover(true);
+
+		return true;
 	}
 
-	public void Pop()
+	bool TryGetInput(out string? input)
 	{
-		components[--component_count] = null;
-	}
+		input = null;
 
-	void Draw()
-	{
-		Console.Clear();
+		switch (Console.ReadKey().Key)
+		{
+			case ConsoleKey.Escape:
+				input = "Escape";
+				break;
 
-		if (header is not null)
-			Console.WriteLine(header);
+			case ConsoleKey.Enter:
+				switch (components[current])
+				{
+					case InputOption input_option:
+						SetCurrentHover(true);
+						DrawInputDialogue(input_option);
+						SetCurrentHover(false);
 
-		for (int i = 0; i < component_count; i++)
-			Console.WriteLine(components[i]);
+						input = input_option.GetInput();
+						break;
+
+					case Option option:
+						input = option.Text;
+						break;
+				}
+				break;
+
+			case ConsoleKey.W or ConsoleKey.UpArrow:
+				if (interactive)
+					MoveCursor(-1);
+				break;
+
+			case ConsoleKey.S or ConsoleKey.DownArrow:
+				if (interactive)
+					MoveCursor(1);
+				break;
+		}
+
+		return input != null;
 	}
 
 	void MoveCursor(int direction)
@@ -62,84 +104,61 @@ public sealed class Menu
 		ArgumentOutOfRangeException.ThrowIfEqual(direction, 0);
 		ArgumentOutOfRangeException.ThrowIfGreaterThan(direction, 1);
 #endif
-		cursor += direction;
+		current += direction;
 
-		if (cursor < 0)
-			cursor = component_count - 1;
-		else if (cursor >= components.Length)
-			cursor = 0;
+		if (current < 0)
+			current = component_count - 1;
+		else if (current >= components.Length)
+			current = 0;
 
-		if (components[cursor] is not HoverComponent)
+		if (components[current] is not HoverComponent)
 			MoveCursor(direction);
 	}
 
-	void SetHoverAtCursor(bool value)
+	void SetCurrentHover(bool value)
 	{
-		if (components[cursor] is HoverComponent hover)
+		if (components[current] is HoverComponent hover)
 			hover.Hover = value;
 	}
 
-	public bool Process(out string? output)
+	void Draw()
 	{
-		output = null;
+		Console.Clear();
 
-		Draw();
-		SetHoverAtCursor(false);
-
-		switch (Console.ReadKey().Key)
-		{
-			case ConsoleKey.Backspace:
-				return false;
-
-			case ConsoleKey.Enter:
-				switch (components[cursor])
-				{
-					case TextOption enter:
-						if (enter.InputHint is not null)
-							Append($"Please enter {enter.InputHint.ToUpper()}:");
-						else
-							Append($"Please enter text:");
-
-						Draw();
-						output = enter.RequestInput();
-						Pop();
-						break;
-
-					case KeyOption press:
-						if (press.InputHint is not null)
-							Append($"Please press {press.InputHint.ToUpper()}:");
-						else
-							Append($"Please press key:");
-
-						Draw();
-						output = press.RequestInput();
-						Pop();
-						break;
-
-					case InputOption input:
-						Append("Please enter text:");
-						Draw();
-						output = input.RequestInput();
-						Pop();
-						break;
-
-					case Option option:
-						output = option.Body;
-						break;
-				}
-				break;
-
-			case ConsoleKey.W or ConsoleKey.UpArrow:
-				MoveCursor(-1);
-				break;
-
-			case ConsoleKey.S or ConsoleKey.DownArrow:
-				MoveCursor(1);
-				break;
-		}
-
-		SetHoverAtCursor(true);
-
-		return true;
+		for (int i = 0; i < component_count; i++)
+			Console.WriteLine(components[i]);
 	}
+
+	void DrawInputDialogue(InputOption option)
+	{
+		StringBuilder dialogue = new("Please ");
+
+		if (option is InputTextOption)
+			dialogue.Append("enter ");
+		else if (option is InputKeyOption)
+			dialogue.Append("press ");
+
+		if (option.InputHint is { Length: > 0 })
+			dialogue.Append($"{option.InputHint} ");
+
+		if (option is InputTextOption)
+			dialogue.Append("(text):");
+		else if (option is InputKeyOption)
+			dialogue.Append("(key):");
+
+		AppendComponent(dialogue.ToString());
+		Draw();
+		PopComponent();
+	}
+
+	void AppendComponent(Component component)
+	{
+		if (component_count++ == components.Length)
+			Array.Resize(ref components, component_count << 2);
+
+		components[component_count - 1] = component;
+	}
+
+	void PopComponent() =>
+		component_count--;
 }

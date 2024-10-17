@@ -1,9 +1,9 @@
 ﻿namespace FileBackupTool.Menus.Components;
 
-public class Option(string? body = null) : HoverComponent(body)
+public class Option(string? text = null) : HoverComponent(text)
 {
-	public string? Body => _body;
+	public string? Text => _text;
 
-	public static implicit operator Option(string? body) =>
-		new(body);
+	public static implicit operator Option(string? text) =>
+		new(text);
 }

@@ -2,34 +2,29 @@
 using FileBackupTool.Menus;
 using FileBackupTool.Menus.Components;
 
-Menu menu = new(
+
+Menu example = new(4,
 	"Choose number:",
+	"w",
 	new HoverComponent("1"),
 	"2",
 	new HoverComponent("3"),
 	new HoverComponent("4"),
-	"5",
-	new Option(null),
+	// "5",
+	// new Option(),
 	new Option("6"),
-	new TextOption("ent"),
-	new KeyOption("press"),
+	new InputTextOption("text"),
+	new InputKeyOption("key"),
 	"7"
 	);
 
-// Menu menu = new(null, new SelectComponent("1"));
-//
-// menu.Append("2");
-// menu.Append("3");
-
-// menu.Pop();
-
-while (menu.Process(out string? output))
+while (example.Process(out bool move_back, out string? input))
 {
-	if (output is not null)
+	if (move_back) return;
+
+	if (input != null)
 	{
-		Console.WriteLine(output);
-		if (output == ConsoleKey.Backspace.ToString())
-			Console.WriteLine("Back");
+		Console.WriteLine(input);
 		break;
 	}
 }

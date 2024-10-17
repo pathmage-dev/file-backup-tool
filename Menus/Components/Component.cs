@@ -1,11 +1,14 @@
 ﻿namespace FileBackupTool.Menus.Components;
 
-public class Component(string? body = null)
+public class Component(string? text = null)
 {
-	protected readonly string? _body = body;
+	protected string? _text { get; } = text;
 
-	public override string? ToString() => _body;
+	public override string? ToString() =>
+		_text == ""
+			? null
+			: _text;
 
-	public static implicit operator Component(string? body) =>
-		new(body);
+	public static implicit operator Component(string? text) =>
+		new(text);
 }
