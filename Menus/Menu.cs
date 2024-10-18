@@ -1,100 +1,131 @@
-﻿using System.Text;
+﻿using System.Collections;
+using System.Collections.Generic;
+using System.IO;
+using System.Text;
 using FileBackupTool.Menus.Components;
 
 namespace FileBackupTool.Menus;
 
-public sealed class Menu
+public struct Menu() : IEnumerable<Component>
 {
-	Component[] components;
-	int component_count;
+	Component[] components = new Component[10];
+	int count;
+	int cursor;
 
-	int current;
+	bool has_hover;
 
-	readonly bool interactive;
-
-	public Menu(int hovered_option, params Component[] components)
+	public Menu(params Span<Component> components) : this()
 	{
-#if ERR
-		ArgumentOutOfRangeException.ThrowIfEqual(components.Length, 0);
-		ArgumentOutOfRangeException.ThrowIfLessThan(hovered_option, 0);
-		ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(hovered_option, components.Length);
-#endif
-		this.components = components;
-		component_count = components.Length;
-
-		for (int i = 0; i < components.Length; i++)
-		{
-			if (components[i] is HoverComponent)
-			{
-				current = i;
-				interactive = true;
-				break;
-			}
-		}
-
-		if (components[hovered_option] is HoverComponent)
-			current = hovered_option;
-
-		SetCurrentHover(true);
+		foreach (Component component in components)
+			Add(component);
 	}
 
-	public Menu(params Component[] components) : this(0, components) { }
-
-	public bool Process(out bool go_back, out string? input)
+	public bool Update(out bool go_back, out string? input)
 	{
 		go_back = false;
 
 		Draw();
-		SetCurrentHover(false);
+		HoverCursor(false);
 
-		if (TryGetInput(out input) &&
+		if (TryInput(out input) &&
 		    input == "Escape")
 			go_back = true;
 
-		SetCurrentHover(true);
+		HoverCursor(true);
 
 		return true;
 	}
 
-	bool TryGetInput(out string? input)
+	bool TryInput(out string? input)
 	{
-		input = null;
-
 		switch (Console.ReadKey().Key)
 		{
 			case ConsoleKey.Escape:
 				input = "Escape";
-				break;
+				return true;
 
 			case ConsoleKey.Enter:
-				switch (components[current])
+				switch (components[cursor])
 				{
 					case InputOption input_option:
-						SetCurrentHover(true);
+						HoverCursor(true);
 						DrawInputDialogue(input_option);
-						SetCurrentHover(false);
+						HoverCursor(false);
 
-						input = input_option.GetInput();
-						break;
+						input = input_option.Input();
+						Draw();
+
+						return input != null;
 
 					case Option option:
 						input = option.Text;
-						break;
+
+						return input != null;
 				}
-				break;
+
+				input = null;
+				return false;
 
 			case ConsoleKey.W or ConsoleKey.UpArrow:
-				if (interactive)
+				if (has_hover)
 					MoveCursor(-1);
-				break;
+
+				input = null;
+				return true;
 
 			case ConsoleKey.S or ConsoleKey.DownArrow:
-				if (interactive)
+				if (has_hover)
 					MoveCursor(1);
-				break;
+
+				input = null;
+				return true;
 		}
 
-		return input != null;
+		input = null;
+		return false;
+	}
+
+	public void Hover(int idx)
+	{
+#if ERR
+		ArgumentOutOfRangeException.ThrowIfLessThan(idx, 0);
+#endif
+		HoverCursor(false);
+
+		if (idx >= count)
+			for (int i = count - 1; i >= 0; i--)
+			{
+				if (components[i] is not HoverComponent) continue;
+
+				cursor = i;
+				HoverCursor(true);
+				return;
+			}
+
+		for (int i = idx - 1; i >= 0; i--)
+		{
+			if (components[i] is not HoverComponent) continue;
+
+			cursor = i;
+			HoverCursor(true);
+			return;
+		}
+
+		for (int i = idx; i < count; i++)
+		{
+			if (components[i] is not HoverComponent) continue;
+
+			cursor = i;
+			HoverCursor(true);
+			return;
+		}
+	}
+
+	void HoverCursor(bool hover)
+	{
+		if (components[cursor] is not HoverComponent hover_component) return;
+
+		hover_component.Hover = hover;
 	}
 
 	void MoveCursor(int direction)
@@ -104,28 +135,22 @@ public sealed class Menu
 		ArgumentOutOfRangeException.ThrowIfEqual(direction, 0);
 		ArgumentOutOfRangeException.ThrowIfGreaterThan(direction, 1);
 #endif
-		current += direction;
+		cursor += direction;
 
-		if (current < 0)
-			current = component_count - 1;
-		else if (current >= components.Length)
-			current = 0;
+		if (cursor < 0)
+			cursor = count - 1;
+		else if (cursor >= components.Length)
+			cursor = 0;
 
-		if (components[current] is not HoverComponent)
+		if (components[cursor] is not HoverComponent)
 			MoveCursor(direction);
-	}
-
-	void SetCurrentHover(bool value)
-	{
-		if (components[current] is HoverComponent hover)
-			hover.Hover = value;
 	}
 
 	void Draw()
 	{
 		Console.Clear();
 
-		for (int i = 0; i < component_count; i++)
+		for (int i = 0; i < count; i++)
 			Console.WriteLine(components[i]);
 	}
 
@@ -146,19 +171,38 @@ public sealed class Menu
 		else if (option is InputKeyOption)
 			dialogue.Append("(key):");
 
-		AppendComponent(dialogue.ToString());
+		Add(dialogue.ToString());
 		Draw();
-		PopComponent();
+		RemoveLast();
 	}
 
-	void AppendComponent(Component component)
+	public void Add(Component component)
 	{
-		if (component_count++ == components.Length)
-			Array.Resize(ref components, component_count << 2);
+#if ERR
+		ArgumentOutOfRangeException.ThrowIfEqual(components.Length, 0);
+#endif
+		if (component is HoverComponent)
+			has_hover = true;
 
-		components[component_count - 1] = component;
+		if (count == components.Length)
+			Array.Resize(ref components, components.Length << 1);
+
+		components[count++] = component;
 	}
 
-	void PopComponent() =>
-		component_count--;
+	void RemoveLast()
+	{
+#if ERR
+		ArgumentOutOfRangeException.ThrowIfLessThan(count, 0);
+#endif
+		count--;
+	}
+
+	public IEnumerator<Component> GetEnumerator()
+	{
+		for (int i = 0; i < count; i++)
+			yield return components[i];
+	}
+
+	IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 }

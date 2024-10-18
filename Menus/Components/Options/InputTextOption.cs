@@ -2,7 +2,7 @@
 
 public class InputTextOption(string? text = null, string? input_hint = null) : InputOption(text, input_hint)
 {
-	public override string? GetInput()
+	public override string? Input()
 	{
 		string? input = Console.ReadLine();
 
@@ -12,6 +12,6 @@ public class InputTextOption(string? text = null, string? input_hint = null) : I
 		return input;
 	}
 
-	public static implicit operator InputTextOption(string? body) =>
-		new(body);
+	public static implicit operator InputTextOption(string? text) =>
+		new(text);
 }

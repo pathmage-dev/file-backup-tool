@@ -4,5 +4,5 @@ public abstract class InputOption(string? text = null, string? input_hint = null
 {
 	public string? InputHint { get; } = input_hint;
 
-	public abstract string? GetInput();
+	public abstract string? Input();
 }

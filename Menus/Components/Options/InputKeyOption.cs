@@ -2,7 +2,7 @@
 
 public class InputKeyOption(string? text = null, string? input_hint = null) : InputOption(text, input_hint)
 {
-	public override string? GetInput()
+	public override string? Input()
 	{
 		ConsoleKeyInfo input = Console.ReadKey();
 
@@ -12,6 +12,6 @@ public class InputKeyOption(string? text = null, string? input_hint = null) : In
 		return input.Key.ToString();
 	}
 
-	public static implicit operator InputKeyOption(string? body) =>
-		new(body);
+	public static implicit operator InputKeyOption(string? text) =>
+		new(text);
 }
