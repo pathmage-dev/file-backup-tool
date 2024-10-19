@@ -1,17 +1,14 @@
 ﻿namespace FileBackupTool.Menus.Components;
 
-public class InputTextOption(string? text = null, string? input_hint = null) : InputOption(text, input_hint)
+public class InputTextOption(string? text = null, string? input_hint = null)
+    : InputOption(text, input_hint)
 {
-	public override string? Input()
-	{
-		string? input = Console.ReadLine();
+    public override string? ReadInput()
+    {
+        string? input = Console.ReadLine();
 
-		if (input == "")
-			return null;
+        return input == "" ? null : input;
+    }
 
-		return input;
-	}
-
-	public static implicit operator InputTextOption(string? text) =>
-		new(text);
+    public static implicit operator InputTextOption(string? text) => new(text);
 }
