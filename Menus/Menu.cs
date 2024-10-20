@@ -49,7 +49,6 @@ public struct Menu() : IEnumerable<Component>
                 return true;
 
             case ConsoleKey.Enter:
-                input = null;
                 switch (components[cursor])
                 {
                     case InputOption input_option:
@@ -68,6 +67,7 @@ public struct Menu() : IEnumerable<Component>
                         return input != null;
                 }
 
+                input = null;
                 return false;
 
             case ConsoleKey.W
@@ -168,18 +168,28 @@ public struct Menu() : IEnumerable<Component>
     {
         StringBuilder dialogue = new("Please ");
 
-        if (input is InputTextOption)
-            dialogue.Append("enter ");
-        else if (input is InputKeyOption)
-            dialogue.Append("press ");
+        switch (input)
+        {
+            case InputTextOption:
+                dialogue.Append("enter ");
+                break;
+            case InputKeyOption:
+                dialogue.Append("press ");
+                break;
+        }
 
         if (input.InputHint is { Length: > 0 })
             dialogue.Append($"{input.InputHint} ");
 
-        if (input is InputTextOption)
-            dialogue.Append("(text):");
-        else if (input is InputKeyOption)
-            dialogue.Append("(key):");
+        switch (input)
+        {
+            case InputTextOption:
+                dialogue.Append("(text):");
+                break;
+            case InputKeyOption:
+                dialogue.Append("(key):");
+                break;
+        }
 
         Add(dialogue.ToString());
         Draw();

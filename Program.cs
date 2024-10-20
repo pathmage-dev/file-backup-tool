@@ -4,16 +4,17 @@ using FileBackupTool;
 using FileBackupTool.Menus;
 using FileBackupTool.Menus.Components;
 
-Menu main_menu =
-[
-    "---",
-    new Option("Test"),
-    "---",
-    new HoverComponent("1"),
-    new InputTextOption("text"),
-    new InputKeyOption("key"),
-    "end",
-];
+Menu main_menu = new(new HoverComponent("a"));
+
+// [
+//     "---",
+//     new Option("Test"),
+//     "---",
+//     new HoverComponent("1"),
+//     new InputTextOption("text"),
+//     new InputKeyOption("key"),
+//     "end",
+// ];
 
 main_menu.Add("A");
 
