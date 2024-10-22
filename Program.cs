@@ -2,7 +2,7 @@
 using FileBackupTool.Menus;
 using FileBackupTool.Menus.Components;
 
-Menu main_menu = ["---", new Option("Test"), "---", new HoverComponent("1"), "fdfdddia"];
+Menu main_menu = ["---", new Option("Test"), "---", new HoverComponent("1")];
 
 // Settings.MainMenuPresets
 // main_menu.Add("file-backup-tool");

@@ -1,6 +1,6 @@
 **/.vscode
 **/.idea
-**/*.DotSettings.user
+**/*DotSettings*
 
 **/bin
 **/obj
