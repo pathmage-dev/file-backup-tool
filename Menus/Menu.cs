@@ -17,7 +17,7 @@ public struct Menu() : IEnumerable<Component>
 	public Menu(params Span<Component> components)
 		: this()
 	{
-		foreach (Component component in components)
+		foreach (var component in components)
 			Add(component);
 
 		Hover(0);
@@ -28,7 +28,10 @@ public struct Menu() : IEnumerable<Component>
 		draw();
 		hoverCursor(false);
 
-		if (tryReadInput(out input) && input == ConsoleKey.Escape.ToString())
+		if (
+			tryReadInput(out input)
+			&& input == ConsoleKey.Escape.ToString()
+		)
 		{
 			go_back = true;
 			return true;
@@ -99,7 +102,7 @@ public struct Menu() : IEnumerable<Component>
 		hoverCursor(false);
 
 		if (at >= count)
-			for (int i = count - 1; i >= 0; i--)
+			for (var i = count - 1; i >= 0; i--)
 			{
 				if (components[i] is not HoverComponent)
 					continue;
@@ -109,7 +112,7 @@ public struct Menu() : IEnumerable<Component>
 				return;
 			}
 
-		for (int i = at - 1; i >= 0; i--)
+		for (var i = at - 1; i >= 0; i--)
 		{
 			if (components[i] is not HoverComponent)
 				continue;
@@ -119,7 +122,7 @@ public struct Menu() : IEnumerable<Component>
 			return;
 		}
 
-		for (int i = at; i < count; i++)
+		for (var i = at; i < count; i++)
 		{
 			if (components[i] is not HoverComponent)
 				continue;
@@ -160,13 +163,13 @@ public struct Menu() : IEnumerable<Component>
 	{
 		Console.Clear();
 
-		for (int i = 0; i < count; i++)
+		for (var i = 0; i < count; i++)
 			Console.WriteLine(components[i]);
 	}
 
 	void drawInputDialogue(InputOption input)
 	{
-		StringBuilder dialogue = new("Please ");
+		var dialogue = new StringBuilder("Please ");
 
 		switch (input)
 		{
@@ -199,7 +202,10 @@ public struct Menu() : IEnumerable<Component>
 	public void Add(Component component)
 	{
 #if ERR
-		ArgumentOutOfRangeException.ThrowIfEqual(components.Length, 0);
+		ArgumentOutOfRangeException.ThrowIfEqual(
+			components.Length,
+			0
+		);
 #endif
 
 		if (count == components.Length)
@@ -226,7 +232,7 @@ public struct Menu() : IEnumerable<Component>
 
 	public IEnumerator<Component> GetEnumerator()
 	{
-		for (int i = 0; i < count; i++)
+		for (var i = 0; i < count; i++)
 			yield return components[i];
 	}
 

@@ -5,9 +5,12 @@ public class InputTextOption(string? text = null, string? input_hint = null)
 {
 	public override string? ReadInput()
 	{
-		string? input = Console.ReadLine();
+		var input = Console.ReadLine();
 
-		return input == "" ? null : input;
+		if (input == "")
+			return null;
+
+		return input;
 	}
 
 	public static implicit operator InputTextOption(string? text) => new(text);

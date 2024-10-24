@@ -2,7 +2,7 @@
 using FileBackupTool.Menus;
 using FileBackupTool.Menus.Components;
 
-Menu main_menu = ["---", new Option("Test"), "---", new HoverComponent("1")];
+var main_menu = new Menu() { new Option("Test"), "----------------" };
 
 // Settings.MainMenuPresets
 // main_menu.Add("file-backup-tool");
@@ -10,7 +10,7 @@ Menu main_menu = ["---", new Option("Test"), "---", new HoverComponent("1")];
 // Settings.MainMenuLastSessionHover
 // main_menu.Hover(5);
 
-while (main_menu.Update(out bool move_back, out string? input))
+while (main_menu.Update(out var move_back, out var input))
 {
 	if (move_back)
 	{

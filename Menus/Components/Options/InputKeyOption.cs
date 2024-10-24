@@ -5,7 +5,7 @@ public class InputKeyOption(string? text = null, string? input_hint = null)
 {
 	public override string? ReadInput()
 	{
-		ConsoleKeyInfo input = Console.ReadKey();
+		var input = Console.ReadKey();
 
 		if (input.Key == ConsoleKey.Escape)
 			return null;
